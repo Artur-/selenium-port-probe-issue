@@ -1,0 +1,36 @@
+version: 2.1
+orbs:
+  win: circleci/windows@2.2.0
+  browser-tools: circleci/browser-tools@1.2.3
+
+executors: # A set of executors with different resources
+  vm-large:
+    machine:
+      image: ubuntu-2204:2022.04.2
+    resource_class: large # medium, large, xlarge, 2xlarge
+  docker-small:
+    docker:
+      - image: cimg/openjdk:17.0 # small, medium, medium+, large, xlarge, 2xlarge, 2xlarge+
+    resource_class: small
+  docker-medium:
+    docker:
+      - image: cimg/openjdk:17.0
+    resource_class: medium
+
+jobs:
+  port-probe:
+    description: Test port probing
+    executor: docker-small
+    steps:
+      - checkout
+      - browser-tools/install-chrome:
+          replace-existing: true
+      - browser-tools/install-chromedriver
+      - run:
+          name: Maven Run Unit tests
+          command: |
+            mvn -ntp -V -B test -Dtest=PortProbeTest
+workflows:
+  build-and-test:
+    jobs:
+      - port-probe
